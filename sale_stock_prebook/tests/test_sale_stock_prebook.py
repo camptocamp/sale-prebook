@@ -51,7 +51,8 @@ class TestStockReserveSale(TestSaleStockPrebookCase):
     def test_50_process_move(self):
         self.sale.reserve_stock()
         with self.assertRaisesRegex(ValidationError, "You cannot set a quantity done"):
-            self.sale.picking_ids.move_ids.quantity_done = 3
+            self.sale.picking_ids.move_ids.quantity = 3
+            self.sale.picking_ids.move_ids.picked = True
 
     def test_60_prebook_dedicatd_picking_type(self):
         self.deliver_route.rule_ids.write(

@@ -9,6 +9,7 @@ class TestSaleStockPrebookCase(BaseCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
 
         no_prebook_stock_route_id = (
             cls.env["stock.route"]
@@ -28,12 +29,14 @@ class TestSaleStockPrebookCase(BaseCommon):
         # prebook product
         product_form = Form(cls.env["product.product"])
         product_form.name = "Test Product 1"
-        product_form.detailed_type = "product"
+        product_form.type = "consu"
+        product_form.is_storable = True
         cls.product_1 = product_form.save()
         # non-prebook product
         product_form = Form(cls.env["product.product"])
         product_form.name = "Test Product 22"
-        product_form.detailed_type = "product"
+        product_form.type = "consu"
+        product_form.is_storable = True
         product_form.route_ids.add(no_prebook_stock_route_id)
         cls.product_2 = product_form.save()
 
