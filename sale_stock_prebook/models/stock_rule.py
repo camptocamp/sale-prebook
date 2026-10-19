@@ -10,7 +10,8 @@ class StockRule(models.Model):
         "stock.picking.type",
         required=False,
         check_company=True,
-        domain="[('code', '=?', picking_type_code_domain)]",
+        domain="[('code', 'in', picking_type_code_domain)] "
+        "if picking_type_code_domain else []",
         help="This operation type will be used for prebooking stock for sale orders. "
         "It's therefore only relevant for rules that are used for sale order lines.",
     )

@@ -22,7 +22,10 @@ class TestStockReserveSale(TestSaleStockPrebookCase):
         )
         self.assertEqual(self.sale.picking_ids.move_ids.product_id, self.product_1)
         self.assertFalse(self.sale2.picking_ids)
+        reference = reservation_pickings.reference_ids
+        self.assertEqual(reference.name, f"Reservation for {self.sale.name}")
         self.sale.release_reservation()
+        self.assertFalse(reference.exists())
         reservation_pickings = self.sale._get_reservation_pickings()
         self.assertFalse(self.sale.stock_is_reserved)
         self.assertEqual(

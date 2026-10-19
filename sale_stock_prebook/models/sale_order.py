@@ -29,16 +29,13 @@ class SaleOrder(models.Model):
         self.release_reservation()
         return super().action_confirm()
 
-    def _prepare_reserve_procurement_group_values(self):
+    def _prepare_reserve_stock_reference_values(self):
         self.ensure_one()
-        line = fields.first(self.order_line)
-        values = line._prepare_procurement_group_vals()
-        values["name"] = f"Reservation for {values['name']}"
-        return values
+        return {"name": f"Reservation for {self.name}"}
 
-    def _create_reserve_procurement_group(self):
-        return self.env["procurement.group"].create(
-            self._prepare_reserve_procurement_group_values()
+    def _create_reserve_stock_reference(self):
+        return self.env["stock.reference"].create(
+            self._prepare_reserve_stock_reference_values()
         )
 
     def reserve_stock(self):
@@ -54,14 +51,14 @@ class SaleOrder(models.Model):
         procurements = []
 
         for order in self:
-            group = order._create_reserve_procurement_group()
-            procurements += order.order_line._prepare_reserve_procurements(group)
+            reference = order._create_reserve_stock_reference()
+            procurements += order.order_line._prepare_reserve_procurements(reference)
         if procurements:
-            self.env["procurement.group"].run(procurements)
+            self.env["stock.rule"].run(procurements)
 
     def release_reservation(self):
         pickings = self._get_reservation_pickings()
         if pickings:
             pickings.action_cancel()
-            pickings.group_id.sudo().unlink()
+            pickings.reference_ids.sudo().unlink()
             pickings.sudo().unlink()

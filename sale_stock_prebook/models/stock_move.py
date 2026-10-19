@@ -19,6 +19,6 @@ class StockMove(models.Model):
                     )
                 )
 
-    def _action_assign(self, force_qty=None):
+    def _action_assign(self, force_qty=False):
         new_self = self.filtered(lambda m: not m.used_for_sale_reservation)
         return super(StockMove, new_self)._action_assign(force_qty=force_qty)

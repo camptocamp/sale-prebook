@@ -6,8 +6,9 @@ from odoo import models
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    def _prepare_reserve_procurement_values(self, group_id=None):
-        values = self._prepare_procurement_values(group_id)
+    def _prepare_reserve_procurement_values(self, reference):
+        values = self._prepare_procurement_values()
+        values["reference_ids"] = reference
         values["used_for_sale_reservation"] = True
         return values
 
@@ -20,28 +21,27 @@ class SaleOrderLine(models.Model):
                 return False
         return True
 
-    def _prepare_reserve_procurement(self, group):
-        """Adjusts UOM qty for product, makes list of field values for
-        procurement group"""
-        product_qty, procurement_uom = self.product_uom._adjust_uom_quantities(
+    def _prepare_reserve_procurement(self, reference):
+        """Adjusts UOM qty for product, prepares the reservation procurement"""
+        product_qty, procurement_uom = self.product_uom_id._adjust_uom_quantities(
             self.product_uom_qty, self.product_id.uom_id
         )
-        return self.env["procurement.group"].Procurement(
+        return self.env["stock.rule"].Procurement(
             self.product_id,
             product_qty,
             procurement_uom,
-            self.order_id.partner_shipping_id.property_stock_customer,
+            self._get_location_final(),
             self.product_id.display_name,
-            group.name,
+            reference.name,
             self.order_id.company_id,
-            self._prepare_reserve_procurement_values(group_id=group),
+            self._prepare_reserve_procurement_values(reference),
         )
 
-    def _prepare_reserve_procurements(self, group):
+    def _prepare_reserve_procurements(self, reference):
         """Prepares list of dicts - reserve procurements"""
         procurements = []
         for line in self:
             if not line._should_prebook_stock():
                 continue
-            procurements.append(line._prepare_reserve_procurement(group))
+            procurements.append(line._prepare_reserve_procurement(reference))
         return procurements
