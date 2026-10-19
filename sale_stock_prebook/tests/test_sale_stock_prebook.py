@@ -69,3 +69,8 @@ class TestStockReserveSale(TestSaleStockPrebookCase):
         self.assertEqual(
             self.sale.picking_ids.picking_type_id, self.prebook_picking_type
         )
+
+    def test_70_reserve_without_prebookable_line(self):
+        references = self.env["stock.reference"].search([])
+        self.sale2.reserve_stock()
+        self.assertFalse(self.env["stock.reference"].search([]) - references)
