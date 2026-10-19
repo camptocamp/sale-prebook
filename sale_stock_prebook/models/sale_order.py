@@ -51,8 +51,11 @@ class SaleOrder(models.Model):
         procurements = []
 
         for order in self:
+            lines = order.order_line.filtered(lambda line: line._should_prebook_stock())
+            if not lines:
+                continue
             reference = order._create_reserve_stock_reference()
-            procurements += order.order_line._prepare_reserve_procurements(reference)
+            procurements += lines._prepare_reserve_procurements(reference)
         if procurements:
             self.env["stock.rule"].run(procurements)
 
